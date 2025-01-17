@@ -1,3 +1,5 @@
-export const PROJECT_ID = 'farcaster-frames-template';
-export const PROJECT_TITLE = "Farcaster Frames Template";
-export const PROJECT_DESCRIPTION = "A Farcaster Frames v2 Template by hellno";
+export const PROJECT_ID = 'skycast';
+export const PROJECT_TITLE = "SkyCast";
+export const PROJECT_DESCRIPTION = "A weather app for Farcaster by stephancill";
+export const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
+export const OPENWEATHER_API_URL = "https://api.openweathermap.org/data/2.5/weather";

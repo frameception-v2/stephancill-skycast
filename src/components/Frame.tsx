@@ -17,19 +17,33 @@ import { createStore } from "mipd";
 import { Label } from "~/components/ui/label";
 import { PROJECT_TITLE } from "~/lib/constants";
 
-function ExampleCard() {
+function WeatherCard({ weather }: { weather: any }) {
+  if (!weather) return null;
+
+  const temp = Math.round(weather.main.temp - 273.15); // Convert from Kelvin to Celsius
+  const icon = weather.weather[0].icon;
+  const description = weather.weather[0].description;
+
   return (
     <Card className="border-neutral-200 bg-white">
       <CardHeader>
-        <CardTitle className="text-neutral-900">Welcome to the Frame Template</CardTitle>
+        <CardTitle className="text-neutral-900">Current Weather</CardTitle>
         <CardDescription className="text-neutral-600">
-          This is an example card that you can customize or remove
+          {weather.name}, {weather.sys.country}
         </CardDescription>
       </CardHeader>
       <CardContent className="text-neutral-800">
-        <p>
-          Your frame content goes here. The text is intentionally dark to ensure good readability.
-        </p>
+        <div className="flex items-center gap-4">
+          <img 
+            src={`https://openweathermap.org/img/wn/${icon}@2x.png`}
+            alt={description}
+            className="w-16 h-16"
+          />
+          <div>
+            <p className="text-2xl font-bold">{temp}°C</p>
+            <p className="capitalize">{description}</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -40,8 +54,28 @@ export default function Frame(
 ) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
-
   const [added, setAdded] = useState(false);
+  const [location, setLocation] = useState("");
+  const [weather, setWeather] = useState<any>(null);
+  const [error, setError] = useState("");
+
+  const fetchWeather = useCallback(async (loc: string) => {
+    try {
+      const response = await fetch(
+        `${OPENWEATHER_API_URL}?q=${encodeURIComponent(loc)}&appid=${OPENWEATHER_API_KEY}`
+      );
+      const data = await response.json();
+      if (data.cod === 200) {
+        setWeather(data);
+        setError("");
+      } else {
+        setError(data.message || "Failed to fetch weather");
+      }
+    } catch (err) {
+      setError("Failed to fetch weather data");
+      console.error(err);
+    }
+  }, []);
 
   const [addFrameResult, setAddFrameResult] = useState("");
 
@@ -137,7 +171,31 @@ export default function Frame(
     >
       <div className="w-[300px] mx-auto py-2 px-2">
         <h1 className="text-2xl font-bold text-center mb-4 text-neutral-900">{title}</h1>
-        <ExampleCard />
+        
+        <div className="mb-4">
+          <Label htmlFor="location" className="block mb-2 text-neutral-700">
+            Enter Location
+          </Label>
+          <div className="flex gap-2">
+            <input
+              id="location"
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="flex-1 p-2 border rounded"
+              placeholder="City, Country"
+            />
+            <PurpleButton 
+              onClick={() => fetchWeather(location)}
+              disabled={!location.trim()}
+            >
+              Get Weather
+            </PurpleButton>
+          </div>
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        </div>
+
+        {weather && <WeatherCard weather={weather} />}
       </div>
     </div>
   );
